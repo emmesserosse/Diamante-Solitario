@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="it">
+<link rel="icon" type="image/svg+xml" href="icona.svg">
+    <meta charset="UTF-8">
+    <title>Il Diamante Solitario</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
+        html, body {
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background-color: #e5e5e5; /* Grigio chiaro */
+            color: #222222;
+            font-family: 'Aptos', 'Aptos Rounded', 'Fredoka', 'Segoe UI', system-ui, sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        header {
+            margin-bottom: 2px;
+        }
+
+        h1 {
+            margin: 0 0 2px 0;
+            font-size: 22px;
+            color: #111111;
+        }
+
+        p {
+            margin: 0;
+            font-size: 13px;
+            color: #444444;
+        }
+
+        #tavolo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            width: 100%;
+            max-height: calc(100vh - 110px);
+            position: relative;
+        }
+
+        #diamante {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .fila {
+            display: flex;
+            gap: 6px;
+        }
+
+        .fila:not(:first-child) {
+            margin-top: -26px;
+        }
+
+        .carta {
+            width: 48px;
+            height: 68px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 2px solid #333333;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px;
+            box-sizing: border-box;
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s, opacity 0.4s ease;
+        }
+
+        .carta:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Colori e stili dei semi */
+        .seme-denari { color: #d97706; }
+        .seme-coppe { color: #dc2626; }
+        .seme-spade { color: #1e293b; }
+        .seme-bastoni { color: #2d5a27; }
+
+        .valore-carta {
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .simbolo-carta {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        /* Carte coperte: pallino dello stesso grigio dello sfondo (#e5e5e5) */
+        .carta.coperta {
+            background: linear-gradient(135deg, #b91c1c, #7f1d1d) !important;
+            color: #e5e5e5 !important;
+            border-color: #450a0a;
+            cursor: not-allowed;
+            justify-content: center;
+        }
+
+        .carta.selezionata {
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 12px #f59e0b;
+            transform: translateY(-5px);
+            z-index: 10;
+        }
+
+        .zona-bordo {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 30px;
+        }
+
+        /* Messaggio di vittoria a schermo */
+        #messaggio-vittoria {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 42px;
+            font-weight: 700;
+            color: #111111;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 25px 45px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            border: 3px solid #f59e0b;
+            z-index: 100;
+            animation: compariVittoria 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes compariVittoria {
+            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .pulsanti {
+            margin-bottom: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            margin: 0 8px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 20px;
+            border: none;
+            background-color: #222222;
+            color: #ffffff;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #000000;
+            transform: scale(1.03);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="64" height="64" style="margin-bottom: 4px;">
+          <defs>
+            <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.45"/>
+            </filter>
+            <clipPath id="clipSpadeDestra">
+              <rect x="256" y="0" width="256" height="512"/>
+            </clipPath>
+          </defs>
+          <g transform="translate(256, 342)" filter="url(#shadow)">
+            <rect x="-55" y="-80" width="110" height="160" rx="12" fill="#ffffff" stroke="#333333" stroke-width="3"/>
+            <text x="0" y="18" font-family="'Segoe UI', sans-serif" font-size="56" font-weight="bold" fill="#1e293b" text-anchor="middle">⚔︎</text>
+          </g>
+          <g transform="translate(182, 256)" filter="url(#shadow)">
+            <rect x="-55" y="-80" width="110" height="160" rx="12" fill="#ffffff" stroke="#333333" stroke-width="3"/>
+            <text x="0" y="18" font-family="'Segoe UI', sans-serif" font-size="56" font-weight="bold" fill="#2d5a27" text-anchor="middle">❦</text>
+          </g>
+          <g transform="translate(256, 170)" filter="url(#shadow)">
+            <rect x="-55" y="-80" width="110" height="160" rx="12" fill="#ffffff" stroke="#333333" stroke-width="3"/>
+            <text x="0" y="18" font-family="'Segoe UI', sans-serif" font-size="56" font-weight="bold" fill="#d97706" text-anchor="middle">❂</text>
+          </g>
+          <g transform="translate(330, 256)" filter="url(#shadow)">
+            <rect x="-55" y="-80" width="110" height="160" rx="12" fill="#ffffff" stroke="#333333" stroke-width="3"/>
+            <text x="0" y="18" font-family="'Segoe UI', sans-serif" font-size="56" font-weight="bold" fill="#dc2626" text-anchor="middle">𐃯</text>
+          </g>
+          <g clip-path="url(#clipSpadeDestra)">
+            <g transform="translate(256, 342)" filter="url(#shadow)">
+              <rect x="-55" y="-80" width="110" height="160" rx="12" fill="#ffffff" stroke="#333333" stroke-width="3"/>
+              <text x="0" y="18" font-family="'Segoe UI', sans-serif" font-size="56" font-weight="bold" fill="#1e293b" text-anchor="middle">⚔︎</text>
+            </g>
+          </g>
+        </svg>
+
+        <h1>Il Diamante Solitario</h1>
+        <p>Regole: Rimuovi due carte scoperte con stesso seme, stessa numero o più di due carte la cui differenza tra le cifre (dalla più alta alla più bassa) equivalga a zero.</p>
+    </header>
+
+    <div id="tavolo">
+        <div id="bordi-sinistra" class="zona-bordo"></div>
+        <div id="diamante"></div>
+        <div id="bordi-destra" class="zona-bordo"></div>
+        <div id="messaggio-vittoria">🎉 HAI VINTO! 🎉</div>
+    </div>
+
+    <div class="pulsanti">
+        <button onclick="rimuoviSelezionate()">Elimina Selezionate</button>
+        <button onclick="iniziaNuovoGioco()">Nuova Partita</button>
+    </div>
+
+    <script>
+        var semi = ['Spade', 'Coppe', 'Denari', 'Bastoni'];
+        var valori = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; 
+        var mazzo = [];
+        var carteSelezionate = [];
+        var grigliaDiamante = [];
+
+        var mappaSemi = {
+            'Denari':  { simbolo: '❂', classe: 'seme-denari' },
+            'Bastoni': { simbolo: '❦', classe: 'seme-bastoni' },
+            'Spade':   { simbolo: '⚔︎', classe: 'seme-spade' },
+            'Coppe':   { simbolo: '𐃯', classe: 'seme-coppe' }
+        };
+
+        function preparaMazzo() {
+            mazzo = [];
+            for (var s = 0; s < semi.length; s++) {
+                for (var v = 0; v < valori.length; v++) {
+                    mazzo.push({ valore: valori[v], seme: semi[s], coperta: true, rimossa: false, id: Math.random() });
+                }
+            }
+            for (var i = mazzo.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = mazzo[i];
+                mazzo[i] = mazzo[j];
+                mazzo[j] = temp;
+            }
+        }
+
+        function iniziaNuovoGioco() {
+            preparaMazzo();
+            carteSelezionate = [];
+            grigliaDiamante = [];
+            
+            document.getElementById('messaggio-vittoria').style.display = 'none';
+            document.getElementById('diamante').innerHTML = '';
+            document.getElementById('bordi-sinistra').innerHTML = '';
+            document.getElementById('bordi-destra').innerHTML = '';
+
+            var schema = [1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1];
+            
+            for (var r = 0; r < schema.length; r++) {
+                var filaDiv = document.createElement('div');
+                filaDiv.className = 'fila';
+                grigliaDiamante[r] = [];
+                
+                for (var c = 0; c < schema[r]; c++) {
+                    var carta = mazzo.pop();
+                    carta.riga = r;
+                    carta.colonna = c;
+                    
+                    if (r === 10) { 
+                        carta.coperta = false; 
+                    }
+                    
+                    grigliaDiamante[r][c] = carta;
+                    var divCarta = creaCard(carta);
+                    carta.el = divCarta;
+                    filaDiv.appendChild(divCarta);
+                }
+                document.getElementById('diamante').appendChild(filaDiv);
+            }
+
+            for (var b = 0; b < 4; b++) {
+                var cartaBordo = mazzo.pop();
+                if (cartaBordo) {
+                    cartaBordo.coperta = false;
+                    var divBordo = creaCard(cartaBordo);
+                    cartaBordo.el = divBordo;
+                    if (b < 2) { 
+                        document.getElementById('bordi-sinistra').appendChild(divBordo); 
+                    } else { 
+                        document.getElementById('bordi-destra').appendChild(divBordo); 
+                    }
+                }
+            }
+        }
+
+        function creaCard(carta) {
+            var div = document.createElement('div');
+            aggiornaGraficaCarta(div, carta);
+            
+            div.onclick = function() {
+                if (carta.coperta || carta.rimossa) return;
+                
+                div.classList.toggle('selezionata');
+                if (div.classList.contains('selezionata')) {
+                    carteSelezionate.push({ dati: carta, el: div });
+                } else {
+                    carteSelezionate = carteSelezionate.filter(function(item) { return item.dati.id !== carta.id; });
+                }
+            };
+            return div;
+        }
+
+        function aggiornaGraficaCarta(div, carta) {
+            if (carta.coperta) {
+                div.className = 'carta coperta';
+                div.innerHTML = '<span style="font-size:14px;">●</span>';
+            } else {
+                var infoSeme = mappaSemi[carta.seme];
+                div.className = 'carta ' + infoSeme.classe;
+                div.innerHTML = '<div class="valore-carta">' + carta.valore + '</div><div class="simbolo-carta">' + infoSeme.simbolo + '</div>';
+            }
+        }
+
+        function controllaEScopriCarte() {
+            for (var r = 9; r >= 0; r--) {
+                for (var c = 0; c < grigliaDiamante[r].length; c++) {
+                    var carta = grigliaDiamante[r][c];
+                    if (carta.rimossa || !carta.coperta) continue;
+
+                    var bloccata = false;
+
+                    if (r < 5) {
+                        var c1 = grigliaDiamante[r+1][c];
+                        var c2 = grigliaDiamante[r+1][c+1];
+                        if ((c1 && !c1.rimossa) || (c2 && !c2.rimossa)) {
+                            bloccata = true;
+                        }
+                    } else {
+                        var c1 = (c - 1 >= 0) ? grigliaDiamante[r+1][c-1] : null;
+                        var c2 = (c < grigliaDiamante[r+1].length) ? grigliaDiamante[r+1][c] : null;
+                        if ((c1 && !c1.rimossa) || (c2 && !c2.rimossa)) {
+                            bloccata = true;
+                        }
+                    }
+
+                    if (!bloccata) {
+                        carta.coperta = false;
+                        aggiornaGraficaCarta(carta.el, carta);
+                    }
+                }
+            }
+        }
+
+        function verificaVittoria() {
+            var carteVisibili = document.querySelectorAll('.carta:not([style*="visibility: hidden"])');
+            
+            // Se resta solo 1 carta visibile sul tavolo ed è scoperta, la fa scomparire in automatico
+            if (carteVisibili.length === 1) {
+                var ultimaCartaEl = carteVisibili[0];
+                if (!ultimaCartaEl.classList.contains('coperta')) {
+                    setTimeout(function() {
+                        ultimaCartaEl.style.opacity = '0';
+                        setTimeout(function() {
+                            ultimaCartaEl.style.visibility = 'hidden';
+                            mostraScrittaVittoria();
+                        }, 400);
+                    }, 300);
+                    return;
+                }
+            }
+
+            // Se tutte le carte sono state rimosse
+            if (carteVisibili.length === 0) {
+                mostraScrittaVittoria();
+            }
+        }
+
+        function mostraScrittaVittoria() {
+            setTimeout(function() {
+                document.getElementById('messaggio-vittoria').style.display = 'block';
+            }, 200);
+        }
+
+        function rimuoviSelezionate() {
+            if (carteSelezionate.length < 2) return;
+            var mossaValida = false;
+
+            if (carteSelezionate.length === 2) {
+                var c1 = carteSelezionate[0].dati;
+                var c2 = carteSelezionate[1].dati;
+                if (c1.valore === c2.valore || c1.seme === c2.seme) { 
+                    mossaValida = true; 
+                }
+            }
+
+            var valoriScelti = [];
+            var totaleSomma = 0;
+            for (var i = 0; i < carteSelezionate.length; i++) {
+                var val = carteSelezionate[i].dati.valore;
+                valoriScelti.push(val);
+                totaleSomma += val;
+            }
+            
+            for (var j = 0; j < valoriScelti.length; j++) {
+                if (valoriScelti[j] === totaleSomma / 2) { 
+                    mossaValida = true; 
+                }
+            }
+
+            if (mossaValida) {
+                for (var k = 0; k < carteSelezionate.length; k++) {
+                    carteSelezionate[k].dati.rimossa = true;
+                    carteSelezionate[k].el.style.visibility = 'hidden';
+                }
+                carteSelezionate = [];
+
+                controllaEScopriCarte();
+                verificaVittoria();
+            } else {
+                alert("Mossa non valida! Ricorda:\n- 2 carte dello stesso Numero o Seme\n- Più carte la cui differenza di cifre sia zero");
+                for (var x = 0; x < carteSelezionate.length; x++) { 
+                    carteSelezionate[x].el.classList.remove('selezionata'); 
+                }
+                carteSelezionate = [];
+            }
+        }
+
+        window.onload = iniziaNuovoGioco;
+    </script>
+</body>
+</html>
